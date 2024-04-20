@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape   xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <gradient
+        android:startColor="#5cadf5"
+        android:endColor="#fff"
+        android:type="linear"
+        android:angle="270"
+        />
+
+
+</shape>
+<!--    708fc2-->
+<!--    ccccff-->
+
+<!--    5cadf5-->
+<!--    f5facf-->
