@@ -9,7 +9,7 @@ import android.widget.ImageButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button startBtn;
+    ImageButton startBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -55,7 +56,8 @@ public class CameraActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100){
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            imageView.setImageBitmap(bitmap);
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 570, 730, false);
+            imageView.setImageBitmap(resizedBitmap);
         }
     }
 
