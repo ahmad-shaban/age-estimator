@@ -1,7 +1,11 @@
 package com.example.ageestimator;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -32,15 +36,40 @@ import java.util.Locale;
 
 import pl.droidsonroids.gif.GifImageView;
 
+import okhttp3.MediaType;
+import retrofit2.Retrofit;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.converter.gson.GsonConverterFactory;
+import okhttp3.RequestBody;
+
+import java.io.FileInputStream;
+
 public class RecordActivity extends AppCompatActivity {
 
-    ImageButton backBtn, play;
+    ImageButton backBtn, play, nextBtn;
     ToggleButton recBtn;
     Chronometer timeRec;
     GifImageView recGif;
 
     File recordedFile;
     private MediaRecorder recorder;
+
+    public static class RetrofitClient {
+        private static Retrofit retrofit = null;
+
+        public static VoiceAgeEstimatorService getService() {
+            if (retrofit == null) {
+                retrofit = new Retrofit.Builder()
+                        .baseUrl("https://api-inference.huggingface.co")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+            }
+
+            return retrofit.create(VoiceAgeEstimatorService.class);
+        }
+    }
 
 
     @Override
@@ -49,7 +78,9 @@ public class RecordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_record);
 
         backBtn = findViewById(R.id.backBtn);
+        nextBtn = findViewById(R.id.nextBtn);
         backBtn.setOnClickListener(v -> finish());
+        nextBtn.setOnClickListener(v -> goToResponseActivity());
 
         play = findViewById(R.id.play);
         play.setOnClickListener(v -> play());
@@ -58,7 +89,14 @@ public class RecordActivity extends AppCompatActivity {
         timeRec = findViewById(R.id.timeRec);
         recGif = findViewById(R.id.recGif);
 
-        askRuntimePermission();
+        // Request for mic runtime permission
+        if (ContextCompat.checkSelfPermission(RecordActivity.this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(RecordActivity.this, new String[]{
+                    Manifest.permission.RECORD_AUDIO
+            }, 100);
+        }
+
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
         String date = format.format(new Date());
 
@@ -128,28 +166,124 @@ public class RecordActivity extends AppCompatActivity {
            mediaPlayer.setDataSource(String.valueOf(recordedFile));
            mediaPlayer.prepare();
            mediaPlayer.start();
-           recordedFile.delete();
+//           recordedFile.delete();
        }
        catch (IOException e){
            e.printStackTrace();
        }
    }
 
-    private void askRuntimePermission(){
-        Dexter.withContext(getBaseContext()).withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO).withListener(new MultiplePermissionsListener() {
-            @Override
-            public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
+//    private void goToResponseActivity() {
+//        Intent intent = getIntent();
+//        String response = intent.getStringExtra("response");
+//        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
+//        intent2.putExtra("response", response);
+//        startActivity(intent2);
+//    }
 
-//                Toast.makeText(getBaseContext(), "Granted!!", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
-
-                permissionToken.continuePermissionRequest();
-            }
-        }).check();
+    private byte[] getVoiceData() {
+        byte[] voiceData = null;
+        try {
+            FileInputStream fis = new FileInputStream(recordedFile);
+            voiceData = new byte[(int) recordedFile.length()];
+            fis.read(voiceData); // read file into bytes[]
+            fis.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return voiceData;
     }
+
+//
+//    private void goToResponseActivity() {
+//        VoiceAgeEstimatorService service = RetrofitClient.getService();
+//        byte[] voicedata = getVoiceData();
+//        RequestBody requestBody = RequestBody.create(MediaType.parse("audio/3gpp"), voicedata);
+//        Call<List<VoiceAgeEstimate>> call = service.estimateVoiceAge(requestBody, "Bearer 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");
+//        call.enqueue(new Callback<List<VoiceAgeEstimate>>() {
+//            @Override
+//            public void onResponse(Call<List<VoiceAgeEstimate>> call, Response<List<VoiceAgeEstimate>> response) {
+//                if (response.isSuccessful()) {
+//                    List<VoiceAgeEstimate> estimates = response.body();
+//                    VoiceAgeEstimate highestScoreEstimate = null;
+//                    for (VoiceAgeEstimate estimate : estimates) {
+//                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
+//                            highestScoreEstimate = estimate;
+//                        }
+//                    }
+//                    if (highestScoreEstimate != null) {
+//                        Intent intent = getIntent();
+//                        String faceResponse = intent.getStringExtra("response");
+//                        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
+//                        intent2.putExtra("faceResponse", faceResponse);
+//                        intent2.putExtra("voiceResponse", highestScoreEstimate.label);
+//                        startActivity(intent2);
+//                    } else {
+//                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    // TODO: handle the error
+//                    Toast.makeText(RecordActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<VoiceAgeEstimate>> call, Throwable t) {
+//                // TODO: handle the failure
+//                Toast.makeText(RecordActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+
+    private void goToResponseActivity() {
+        VoiceAgeEstimatorService service = RetrofitClient.getService();
+        byte[] voicedata = getVoiceData();
+        RequestBody requestBody = RequestBody.create(MediaType.parse("audio/3gpp"), voicedata);
+        makeRequest(service, requestBody, 0);
+    }
+
+    private void makeRequest(VoiceAgeEstimatorService service, RequestBody requestBody, int retryCount) {
+        Call<List<VoiceAgeEstimate>> call = service.estimateVoiceAge(requestBody, "Bearer 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");
+        call.enqueue(new Callback<List<VoiceAgeEstimate>>() {
+            @Override
+            public void onResponse(Call<List<VoiceAgeEstimate>> call, Response<List<VoiceAgeEstimate>> response) {
+                if (response.isSuccessful()) {
+                    List<VoiceAgeEstimate> estimates = response.body();
+                    VoiceAgeEstimate highestScoreEstimate = null;
+                    for (VoiceAgeEstimate estimate : estimates) {
+                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
+                            highestScoreEstimate = estimate;
+                        }
+                    }
+                    if (highestScoreEstimate != null) {
+                        Intent intent = getIntent();
+                        String faceResponse = intent.getStringExtra("response");
+                        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
+                        intent2.putExtra("faceResponse", faceResponse);
+                        intent2.putExtra("voiceResponse", highestScoreEstimate.label);
+                        startActivity(intent2);
+                    } else {
+                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (response.code() == 503 && retryCount < 10) { // Retry up to 10 times
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            makeRequest(service, requestBody, retryCount + 1);
+                        }
+                    }, 2000); // Delay of 2 seconds
+                } else {
+                    // TODO: handle the error
+                    Toast.makeText(RecordActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<VoiceAgeEstimate>> call, Throwable t) {
+                // TODO: handle the failure
+                Toast.makeText(RecordActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }
