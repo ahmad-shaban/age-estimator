@@ -5,36 +5,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.io.ByteArrayOutputStream;
-
 import android.graphics.drawable.BitmapDrawable;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-
-import okhttp3.MediaType;
 import retrofit2.Retrofit;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.converter.gson.GsonConverterFactory;
-import okhttp3.RequestBody;
+
 
 public class CameraActivity extends AppCompatActivity {
 
@@ -111,4 +96,5 @@ public class CameraActivity extends AppCompatActivity {
         intent.putExtra("imageData", bitmapdata);
         startActivity(intent);
     }
+
 }

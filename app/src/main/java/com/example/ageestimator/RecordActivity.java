@@ -3,7 +3,6 @@ package com.example.ageestimator;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
@@ -19,16 +18,14 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.Manifest;
-
+import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
 import pl.droidsonroids.gif.GifImageView;
-
 import okhttp3.MediaType;
 import retrofit2.Retrofit;
 import retrofit2.Call;
@@ -36,9 +33,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.converter.gson.GsonConverterFactory;
 import okhttp3.RequestBody;
-
 import java.io.FileInputStream;
 import java.util.concurrent.CountDownLatch;
+
 
 public class RecordActivity extends AppCompatActivity {
 
@@ -49,7 +46,6 @@ public class RecordActivity extends AppCompatActivity {
 
     File recordedFile;
     private MediaRecorder recorder;
-
 
     public static class FaceRetrofitClient {
         private static Retrofit retrofit = null;
@@ -80,7 +76,6 @@ public class RecordActivity extends AppCompatActivity {
             return retrofit.create(VoiceAgeEstimatorService.class);
         }
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,14 +178,6 @@ public class RecordActivity extends AppCompatActivity {
        }
    }
 
-//    private void goToResponseActivity() {
-//        Intent intent = getIntent();
-//        String response = intent.getStringExtra("response");
-//        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
-//        intent2.putExtra("response", response);
-//        startActivity(intent2);
-//    }
-
     private byte[] getVoiceData() {
         byte[] voiceData = null;
         try {
@@ -203,47 +190,6 @@ public class RecordActivity extends AppCompatActivity {
         }
         return voiceData;
     }
-
-//
-//    private void goToResponseActivity() {
-//        VoiceAgeEstimatorService service = RetrofitClient.getService();
-//        byte[] voicedata = getVoiceData();
-//        RequestBody requestBody = RequestBody.create(MediaType.parse("audio/3gpp"), voicedata);
-//        Call<List<VoiceAgeEstimate>> call = service.estimateVoiceAge(requestBody, "Bearer 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");
-//        call.enqueue(new Callback<List<VoiceAgeEstimate>>() {
-//            @Override
-//            public void onResponse(Call<List<VoiceAgeEstimate>> call, Response<List<VoiceAgeEstimate>> response) {
-//                if (response.isSuccessful()) {
-//                    List<VoiceAgeEstimate> estimates = response.body();
-//                    VoiceAgeEstimate highestScoreEstimate = null;
-//                    for (VoiceAgeEstimate estimate : estimates) {
-//                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
-//                            highestScoreEstimate = estimate;
-//                        }
-//                    }
-//                    if (highestScoreEstimate != null) {
-//                        Intent intent = getIntent();
-//                        String faceResponse = intent.getStringExtra("response");
-//                        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
-//                        intent2.putExtra("faceResponse", faceResponse);
-//                        intent2.putExtra("voiceResponse", highestScoreEstimate.label);
-//                        startActivity(intent2);
-//                    } else {
-//                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
-//                    }
-//                } else {
-//                    // TODO: handle the error
-//                    Toast.makeText(RecordActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<VoiceAgeEstimate>> call, Throwable t) {
-//                // TODO: handle the failure
-//                Toast.makeText(RecordActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 
     private void goToResponseActivity() {
         byte[] imageData = getIntent().getByteArrayExtra("imageData");
@@ -275,26 +221,15 @@ public class RecordActivity extends AppCompatActivity {
         }
     }
 
-
     private void makeFaceRequest(FaceAgeEstimatorService service, RequestBody requestBody, int retryCount, String[] my_response, CountDownLatch latch) {
         Call<List<FaceAgeEstimate>> call = service.estimateFaceAge(requestBody, "Bearer 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");
         call.enqueue(new Callback<List<FaceAgeEstimate>>() {
             @Override
             public void onResponse(Call<List<FaceAgeEstimate>> call, Response<List<FaceAgeEstimate>> response) {
                 if (response.isSuccessful()) {
-                    List<FaceAgeEstimate> estimates = response.body();
-                    FaceAgeEstimate highestScoreEstimate = null;
-                    for (FaceAgeEstimate estimate : estimates) {
-                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
-                            highestScoreEstimate = estimate;
-                        }
-                    }
-                    if (highestScoreEstimate != null) {
-                        my_response[0] = highestScoreEstimate.label;
-                        latch.countDown();
-                    } else {
-                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
-                    }
+                    Gson gson = new Gson();
+                    my_response[0] = gson.toJson(response.body());
+                    latch.countDown();
                 } else if (response.code() == 503 && retryCount < 10) { // Retry up to 10 times
                     new Handler().postDelayed(new Runnable() {
                         @Override
@@ -322,19 +257,9 @@ public class RecordActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<VoiceAgeEstimate>> call, Response<List<VoiceAgeEstimate>> response) {
                 if (response.isSuccessful()) {
-                    List<VoiceAgeEstimate> estimates = response.body();
-                    VoiceAgeEstimate highestScoreEstimate = null;
-                    for (VoiceAgeEstimate estimate : estimates) {
-                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
-                            highestScoreEstimate = estimate;
-                        }
-                    }
-                    if (highestScoreEstimate != null) {
-                        my_response[0] = highestScoreEstimate.label;
-                        latch.countDown();
-                    } else {
-                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
-                    }
+                    Gson gson = new Gson();
+                    my_response[0] = gson.toJson(response.body());
+                    latch.countDown();
                 } else if (response.code() == 503 && retryCount < 10) { // Retry up to 10 times
                     new Handler().postDelayed(new Runnable() {
                         @Override
@@ -343,14 +268,14 @@ public class RecordActivity extends AppCompatActivity {
                         }
                     }, 2000); // Delay of 2 seconds
                 } else {
-                    // TODO: handle the error
+                    // Handle error response
                     Toast.makeText(RecordActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<VoiceAgeEstimate>> call, Throwable t) {
-                // TODO: handle the failure
+                // Handle failure
                 Toast.makeText(RecordActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
