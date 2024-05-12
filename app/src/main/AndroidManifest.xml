@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -24,6 +25,7 @@
         <activity
             android:name=".RecordActivity"
             android:exported="false" />
+        <activity android:name=".ResponseActivity" />
         <activity
             android:name=".CameraActivity"
             android:exported="false" />

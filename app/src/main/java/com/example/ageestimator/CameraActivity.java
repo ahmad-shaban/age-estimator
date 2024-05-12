@@ -5,23 +5,41 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import java.io.ByteArrayOutputStream;
+import android.graphics.drawable.BitmapDrawable;
+import android.widget.Toast;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class CameraActivity extends AppCompatActivity {
 
     ImageView imageView;
     ImageButton capBtn, nextBtn;
 
+    public static class RetrofitClient {
+        private static Retrofit retrofit = null;
+
+        public static FaceAgeEstimatorService getService() {
+            if (retrofit == null) {
+                retrofit = new Retrofit.Builder()
+                        .baseUrl("https://api-inference.huggingface.co")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+            }
+
+            return retrofit.create(FaceAgeEstimatorService.class);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,20 +70,31 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100){
+        if (requestCode == 100 && resultCode == RESULT_OK){
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 570, 730, false);
-            imageView.setImageBitmap(resizedBitmap);
+            imageView.setImageBitmap(bitmap);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
 
-
     private void goToRecordActivity(){
-        Intent intent = new Intent(this, RecordActivity.class);
+        Drawable drawable = imageView.getDrawable();
+        if (drawable == null || !(drawable instanceof BitmapDrawable)) {
+            Toast.makeText(CameraActivity.this, "No image available for upload", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+        byte[] bitmapdata = bos.toByteArray();
+
+        Intent intent = new Intent(CameraActivity.this, RecordActivity.class);
+        intent.putExtra("imageData", bitmapdata);
         startActivity(intent);
     }
-
 
 }
