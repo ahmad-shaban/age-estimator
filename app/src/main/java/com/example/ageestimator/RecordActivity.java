@@ -18,13 +18,6 @@ import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.MultiplePermissionsReport;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-
 import android.Manifest;
 
 import java.io.File;
@@ -56,7 +49,23 @@ public class RecordActivity extends AppCompatActivity {
     File recordedFile;
     private MediaRecorder recorder;
 
-    public static class RetrofitClient {
+
+    public static class FaceRetrofitClient {
+        private static Retrofit retrofit = null;
+
+        public static FaceAgeEstimatorService getService() {
+            if (retrofit == null) {
+                retrofit = new Retrofit.Builder()
+                        .baseUrl("https://api-inference.huggingface.co")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+            }
+
+            return retrofit.create(FaceAgeEstimatorService.class);
+        }
+    }
+
+    public static class VoiceRetrofitClient {
         private static Retrofit retrofit = null;
 
         public static VoiceAgeEstimatorService getService() {
@@ -236,13 +245,59 @@ public class RecordActivity extends AppCompatActivity {
 //    }
 
     private void goToResponseActivity() {
-        VoiceAgeEstimatorService service = RetrofitClient.getService();
-        byte[] voicedata = getVoiceData();
-        RequestBody requestBody = RequestBody.create(MediaType.parse("audio/3gpp"), voicedata);
-        makeRequest(service, requestBody, 0);
+        FaceAgeEstimatorService faceService = CameraActivity.RetrofitClient.getService();
+        byte[] imageData = getIntent().getByteArrayExtra("imageData");
+        if (imageData != null) {
+            RequestBody faceRequestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageData);
+            makeFaceRequest(faceService, faceRequestBody, 0);
+        }
     }
 
-    private void makeRequest(VoiceAgeEstimatorService service, RequestBody requestBody, int retryCount) {
+    private void makeFaceRequest(FaceAgeEstimatorService service, RequestBody requestBody, int retryCount) {
+        Call<List<FaceAgeEstimate>> call = service.estimateFaceAge(requestBody, "Bearer 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");
+        call.enqueue(new Callback<List<FaceAgeEstimate>>() {
+            @Override
+            public void onResponse(Call<List<FaceAgeEstimate>> call, Response<List<FaceAgeEstimate>> response) {
+                if (response.isSuccessful()) {
+                    List<FaceAgeEstimate> estimates = response.body();
+                    FaceAgeEstimate highestScoreEstimate = null;
+                    for (FaceAgeEstimate estimate : estimates) {
+                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
+                            highestScoreEstimate = estimate;
+                        }
+                    }
+                    if (highestScoreEstimate != null) {
+                        Intent intent = new Intent(RecordActivity.this, ResponseActivity.class);
+                        intent.putExtra("faceResponse", highestScoreEstimate.label);
+                        VoiceAgeEstimatorService voiceService = VoiceRetrofitClient.getService();
+                        byte[] voicedata = getVoiceData();
+                        RequestBody voiceRequestBody = RequestBody.create(MediaType.parse("audio/3gpp"), voicedata);
+                        makeVoiceRequest(voiceService, voiceRequestBody, 0, intent);
+                    } else {
+                        Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (response.code() == 503 && retryCount < 10) { // Retry up to 10 times
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            makeFaceRequest(service, requestBody, retryCount + 1);
+                        }
+                    }, 2000); // Delay of 2 seconds
+                } else {
+                    // Handle error response
+                    Toast.makeText(RecordActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<FaceAgeEstimate>> call, Throwable t) {
+                // Handle failure
+                Toast.makeText(RecordActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void makeVoiceRequest(VoiceAgeEstimatorService service, RequestBody requestBody, int retryCount, Intent intent) {
         Call<List<VoiceAgeEstimate>> call = service.estimateVoiceAge(requestBody, "Bearer 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");
         call.enqueue(new Callback<List<VoiceAgeEstimate>>() {
             @Override
@@ -256,12 +311,8 @@ public class RecordActivity extends AppCompatActivity {
                         }
                     }
                     if (highestScoreEstimate != null) {
-                        Intent intent = getIntent();
-                        String faceResponse = intent.getStringExtra("response");
-                        Intent intent2 = new Intent(RecordActivity.this, ResponseActivity.class);
-                        intent2.putExtra("faceResponse", faceResponse);
-                        intent2.putExtra("voiceResponse", highestScoreEstimate.label);
-                        startActivity(intent2);
+                        intent.putExtra("voiceResponse", highestScoreEstimate.label);
+                        startActivity(intent);
                     } else {
                         Toast.makeText(RecordActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
                     }
@@ -269,7 +320,7 @@ public class RecordActivity extends AppCompatActivity {
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            makeRequest(service, requestBody, retryCount + 1);
+                            makeVoiceRequest(service, requestBody, retryCount + 1, intent);
                         }
                     }, 2000); // Delay of 2 seconds
                 } else {

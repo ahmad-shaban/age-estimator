@@ -85,69 +85,17 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100){
+        if (requestCode == 100 && resultCode == RESULT_OK){
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 570, 730, false);
-            imageView.setImageBitmap(resizedBitmap);
+            imageView.setImageBitmap(bitmap);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
-//
-//    private void goToRecordActivity(){
-//        FaceAgeEstimatorService service = RetrofitClient.getService();
-//        Drawable drawable = imageView.getDrawable();
-//        if (drawable == null || !(drawable instanceof BitmapDrawable)) {
-//            // No image has been set in the ImageView, or the image is not a BitmapDrawable
-//            Toast.makeText(CameraActivity.this, "No image available for upload", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-//        byte[] bitmapdata = bos.toByteArray();
-//        RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapdata);
-//        Call<List<FaceAgeEstimate>> call = service.estimateFaceAge(requestBody, "Bearer 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");
-//        call.enqueue(new Callback<List<FaceAgeEstimate>>() {
-//            @Override
-//            public void onResponse(Call<List<FaceAgeEstimate>> call, Response<List<FaceAgeEstimate>> response) {
-//                if (response.isSuccessful()) {
-////                    Gson gson = new Gson();
-////                    String responseString = gson.toJson(response.body());
-////                    Intent intent = new Intent(CameraActivity.this, ResponseActivity.class);
-////                    intent.putExtra("response", responseString);
-////                    startActivity(intent);
-//                    List<FaceAgeEstimate> estimates = response.body();
-//                    FaceAgeEstimate highestScoreEstimate = null;
-//                    for (FaceAgeEstimate estimate : estimates) {
-//                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
-//                            highestScoreEstimate = estimate;
-//                        }
-//                    }
-//                    if (highestScoreEstimate != null) {
-//                        Intent intent = new Intent(CameraActivity.this, RecordActivity.class);
-//                        intent.putExtra("response", highestScoreEstimate.label);
-//                        startActivity(intent);
-//                    } else {
-//                        Toast.makeText(CameraActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
-//                    }
-//                } else {
-//                    // TODO: handle the error
-//                    Toast.makeText(CameraActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<FaceAgeEstimate>> call, Throwable t) {
-//                // TODO: handle the failure
-//                Toast.makeText(CameraActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 
     private void goToRecordActivity(){
-        FaceAgeEstimatorService service = RetrofitClient.getService();
         Drawable drawable = imageView.getDrawable();
         if (drawable == null || !(drawable instanceof BitmapDrawable)) {
             Toast.makeText(CameraActivity.this, "No image available for upload", Toast.LENGTH_SHORT).show();
@@ -158,50 +106,9 @@ public class CameraActivity extends AppCompatActivity {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
         byte[] bitmapdata = bos.toByteArray();
-        RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), bitmapdata);
-        makeRequest(service, requestBody, 0);
+
+        Intent intent = new Intent(CameraActivity.this, RecordActivity.class);
+        intent.putExtra("imageData", bitmapdata);
+        startActivity(intent);
     }
-
-    private void makeRequest(FaceAgeEstimatorService service, RequestBody requestBody, int retryCount) {
-        Call<List<FaceAgeEstimate>> call = service.estimateFaceAge(requestBody, "Bearer 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");
-        call.enqueue(new Callback<List<FaceAgeEstimate>>() {
-            @Override
-            public void onResponse(Call<List<FaceAgeEstimate>> call, Response<List<FaceAgeEstimate>> response) {
-                if (response.isSuccessful()) {
-                    List<FaceAgeEstimate> estimates = response.body();
-                    FaceAgeEstimate highestScoreEstimate = null;
-                    for (FaceAgeEstimate estimate : estimates) {
-                        if (highestScoreEstimate == null || estimate.score > highestScoreEstimate.score) {
-                            highestScoreEstimate = estimate;
-                        }
-                    }
-                    if (highestScoreEstimate != null) {
-                        Intent intent = new Intent(CameraActivity.this, RecordActivity.class);
-                        intent.putExtra("response", highestScoreEstimate.label);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(CameraActivity.this, "No estimates received", Toast.LENGTH_SHORT).show();
-                    }
-                } else if (response.code() == 503 && retryCount < 10) { // Retry up to 10 times
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            makeRequest(service, requestBody, retryCount + 1);
-                        }
-                    }, 2000); // Delay of 2 seconds
-                } else {
-                    // Handle error response
-                    Toast.makeText(CameraActivity.this, "Error: " + response.errorBody(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<FaceAgeEstimate>> call, Throwable t) {
-                // Handle failure
-                Toast.makeText(CameraActivity.this, "Failure: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
 }
