@@ -23,7 +23,7 @@
         app:layout_constraintRight_toRightOf="parent" />
 
     <TextView
-        android:id="@+id/FusionAgeEstimateTextView"
+        android:id="@+id/fusionAgeEstimateTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="24sp"

@@ -48,6 +48,8 @@ public class ResponseActivity extends AppCompatActivity{
             voiceAvg = 50;
         } else if (x.equals("[60,80)")) {
             voiceAvg=70;
+        } else {
+            voiceAvg=90;
         }
         return voiceAvg;
     }
@@ -59,7 +61,7 @@ public class ResponseActivity extends AppCompatActivity{
 
         faceResponseTextView = findViewById(R.id.faceAgeEstimateTextView);
         voiceResponseTextView = findViewById(R.id.voiceAgeEstimateTextView);
-        FusionResponseTextView = findViewById(R.id.FusionAgeEstimateTextView);
+        FusionResponseTextView = findViewById(R.id.fusionAgeEstimateTextView);
 
         Gson gson = new Gson();
 
@@ -74,7 +76,7 @@ public class ResponseActivity extends AppCompatActivity{
 
         String voiceResponseString = getIntent().getStringExtra("voiceResponse");
         Type voiceType = new TypeToken<List<VoiceAgeEstimate>>(){}.getType();
-        List<FaceAgeEstimate> voiceResponse = gson.fromJson(voiceResponseString, faceType);
+        List<VoiceAgeEstimate> voiceResponse = gson.fromJson(voiceResponseString, voiceType);
         if (voiceResponse != null && !voiceResponse.isEmpty()) {
             voiceResponseTextView.setText(voiceResponse.get(0).label);
         } else {
@@ -82,16 +84,23 @@ public class ResponseActivity extends AppCompatActivity{
         }
 
         // models fusion
-        String f1_label = faceResponse.get(0).label.replace(" ", "").toLowerCase();
-        double f1_score = faceResponse.get(0).score;
-        String f2_label = faceResponse.get(1).label.replace(" ", "").toLowerCase();
-        double f2_score = faceResponse.get(1).score;
-        String v1_label = voiceResponse.get(0).label.replace(" ", "").toLowerCase();
+        double faceAvg = 0.0;
+        for (FaceAgeEstimate f :faceResponse) {
+            String label = f.label.replace(" ", "").toLowerCase();
+            double score = f.score;
+            faceAvg += calc_face_avg(label) * score;
+        }
+        int faceAvgInt = (int) Math.round(faceAvg);  // Round to nearest integer
 
-        int faceAvg = (int) (calc_face_avg(f1_label) * f1_score + calc_face_avg(f2_label) * f2_score);
-        int voiceAvg = calc_voice_avg(v1_label);
+        double voiceAvg = 0.0;
+        for (VoiceAgeEstimate v :voiceResponse) {
+            String label = v.label.replace(" ", "").toLowerCase();
+            double score = v.score;
+            voiceAvg += calc_voice_avg(label) * score;
+        }
+        int voiceAvgInt = (int) Math.round(voiceAvg);
 
-        int estimated_age = (4*faceAvg + voiceAvg)/5;
+        int estimated_age = (4*faceAvgInt + voiceAvgInt)/5;
 
         FusionResponseTextView.setText(String.valueOf(estimated_age));
 
