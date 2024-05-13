@@ -3,6 +3,8 @@ package com.example.ageestimator;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
@@ -15,6 +17,7 @@ import android.os.SystemClock;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.Manifest;
@@ -121,6 +124,7 @@ public class RecordActivity extends AppCompatActivity {
                 catch (Exception e){
                     e.printStackTrace();
                     Toast.makeText(this,"couldn't record", Toast.LENGTH_SHORT).show();
+                    buttonView.setChecked(false);
                 }
             } else {
                 stopRecording();
@@ -187,6 +191,7 @@ public class RecordActivity extends AppCompatActivity {
             fis.close();
         } catch(Exception e) {
             e.printStackTrace();
+            Toast.makeText(this,"Record a voice", Toast.LENGTH_SHORT).show();
         }
         return voiceData;
     }
@@ -202,6 +207,14 @@ public class RecordActivity extends AppCompatActivity {
             final String[] faceResponse = new String[1];
             final String[] voiceResponse = new String[1];
 
+            // Create ProgressDialog
+            ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("In progress...");
+            progressDialog.show();
+//            // Create ProgressBar
+//            ProgressBar progressBar = findViewById(R.id.progressBar);
+//            progressBar.setVisibility(View.VISIBLE);
+
             makeFaceRequest(FaceRetrofitClient.getService(), faceRequestBody, 0, faceResponse, latch);
             makeVoiceRequest(VoiceRetrofitClient.getService(), voiceRequestBody, 0, voiceResponse, latch);
 
@@ -212,6 +225,10 @@ public class RecordActivity extends AppCompatActivity {
                         Intent intent = new Intent(RecordActivity.this, ResponseActivity.class);
                         intent.putExtra("faceResponse", faceResponse[0]);
                         intent.putExtra("voiceResponse", voiceResponse[0]);
+                        recordedFile.delete();
+                        progressDialog.cancel();
+//                        progressBar.setVisibility(View.GONE);
+                        play.setVisibility(View.GONE);
                         startActivity(intent);
                     });
                 } catch (InterruptedException e) {
