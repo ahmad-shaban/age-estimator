@@ -24,7 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class CameraActivity extends AppCompatActivity {
 
     ImageView imageView;
-    ImageButton capBtn, nextBtn;
+    ImageButton backBtn, capBtn, nextBtn;
 
     public static class RetrofitClient {
         private static Retrofit retrofit = null;
@@ -49,7 +49,9 @@ public class CameraActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         capBtn = findViewById(R.id.capBtn);
         nextBtn = findViewById(R.id.nextBtn);
+        backBtn = findViewById(R.id.backBtn);
 
+        backBtn.setOnClickListener(v -> finish());
         nextBtn.setOnClickListener(v -> goToRecordActivity());
 
         // Request for camera runtime permission

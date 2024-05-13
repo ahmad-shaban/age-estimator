@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.Manifest;
@@ -46,6 +47,7 @@ public class RecordActivity extends AppCompatActivity {
     ToggleButton recBtn;
     Chronometer timeRec;
     GifImageView recGif;
+    TextView textView;
 
     File recordedFile;
     private MediaRecorder recorder;
@@ -85,6 +87,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
 
+        textView = findViewById(R.id.textView);
         backBtn = findViewById(R.id.backBtn);
         nextBtn = findViewById(R.id.nextBtn);
         backBtn.setOnClickListener(v -> finish());
@@ -117,9 +120,11 @@ public class RecordActivity extends AppCompatActivity {
                 try {
                     startRecording();
                     recGif.setVisibility(View.VISIBLE);
-                    play.setVisibility(View.VISIBLE);
+                    play.setVisibility(View.GONE);
+                    nextBtn.setVisibility(View.GONE);
                     timeRec.setBase(SystemClock.elapsedRealtime());
                     timeRec.start();
+                    textView.setText("Recording...");
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -131,11 +136,16 @@ public class RecordActivity extends AppCompatActivity {
                 recGif.setVisibility(View.GONE);
                 timeRec.setBase(SystemClock.elapsedRealtime());
                 timeRec.stop();
+                textView.setText("Recorded Successfully");
             }
         });
     }
 
     private void startRecording(){
+        if (recordedFile.exists()) {
+            recordedFile.delete();
+        }
+
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
@@ -166,6 +176,8 @@ public class RecordActivity extends AppCompatActivity {
         recorder.stop();
         recorder.release();
         recorder = null;
+        nextBtn.setVisibility(View.VISIBLE);
+        play.setVisibility(View.VISIBLE);
     }
 
    private void play(){
@@ -175,7 +187,6 @@ public class RecordActivity extends AppCompatActivity {
            mediaPlayer.setDataSource(String.valueOf(recordedFile));
            mediaPlayer.prepare();
            mediaPlayer.start();
-//           recordedFile.delete();
        }
        catch (IOException e){
            e.printStackTrace();

@@ -10,12 +10,12 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Age "
+        android:text="Result"
         android:layout_centerHorizontal="true"
         android:textSize="36sp"
         android:textStyle="bold"
         android:textColor="@color/black"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="30dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -29,10 +29,13 @@
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
         app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/startBtn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="60dp"
         >
 
         <LinearLayout
@@ -44,26 +47,35 @@
             >
 
             <TextView
-                android:id="@+id/faceAgeEstimateTextView"
+                android:id="@+id/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="test1"
+                android:text="Your expected age is:"
+                android:textSize="28sp"
                 android:textColor="@color/black"
                 />
 
-            <TextView
-                android:id="@+id/voiceAgeEstimateTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="test2"
-                android:textColor="@color/black"
-                />
+<!--            <TextView-->
+<!--                android:id="@+id/faceAgeEstimateTextView"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text=""-->
+<!--                android:textColor="@color/black"-->
+<!--                />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/voiceAgeEstimateTextView"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text=""-->
+<!--                android:textColor="@color/black"-->
+<!--                />-->
 
             <TextView
                 android:id="@+id/fusionAgeEstimateTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="test2"
+                android:text=""
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
@@ -79,6 +91,22 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
+        <android.widget.Button
+            android:id="@+id/startBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Try new one"
+            android:textAllCaps="false"
+            android:padding="10dp"
+            android:textColor="#fff"
+            android:textSize="26sp"
+            android:background="@drawable/custom_btn"
+            android:layout_marginBottom="40dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

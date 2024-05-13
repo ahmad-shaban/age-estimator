@@ -1,6 +1,9 @@
 package com.example.ageestimator;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.Gson;
@@ -59,9 +62,19 @@ public class ResponseActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_response);
 
-        faceResponseTextView = findViewById(R.id.faceAgeEstimateTextView);
-        voiceResponseTextView = findViewById(R.id.voiceAgeEstimateTextView);
+//        faceResponseTextView = findViewById(R.id.faceAgeEstimateTextView);
+//        voiceResponseTextView = findViewById(R.id.voiceAgeEstimateTextView);
         FusionResponseTextView = findViewById(R.id.fusionAgeEstimateTextView);
+
+        Button button = (Button) findViewById(R.id.startBtn);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ResponseActivity.this, CameraActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
+        });
 
         Gson gson = new Gson();
 
@@ -69,18 +82,18 @@ public class ResponseActivity extends AppCompatActivity{
         Type faceType = new TypeToken<List<FaceAgeEstimate>>(){}.getType();
         List<FaceAgeEstimate> faceResponse = gson.fromJson(faceResponseString, faceType);
         if (faceResponse != null && !faceResponse.isEmpty()) {
-            faceResponseTextView.setText(gson.toJson(faceResponse));
+//            faceResponseTextView.setText(gson.toJson(faceResponse));
         } else {
-            faceResponseTextView.setText("No response received.");
+//            faceResponseTextView.setText("No response received.");
         }
 
         String voiceResponseString = getIntent().getStringExtra("voiceResponse");
         Type voiceType = new TypeToken<List<VoiceAgeEstimate>>(){}.getType();
         List<VoiceAgeEstimate> voiceResponse = gson.fromJson(voiceResponseString, voiceType);
         if (voiceResponse != null && !voiceResponse.isEmpty()) {
-            voiceResponseTextView.setText(voiceResponse.get(0).label);
+//            voiceResponseTextView.setText(voiceResponse.get(0).label);
         } else {
-            voiceResponseTextView.setText("No response received.");
+//            voiceResponseTextView.setText("No response received.");
         }
 
         // models fusion
