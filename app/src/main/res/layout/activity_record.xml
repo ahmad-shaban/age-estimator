@@ -111,6 +111,20 @@
         android:layout_marginTop="10dp"
         />
 
+<!--    <android.widget.Button-->
+<!--        android:id="@+id/skipBtn"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Skip"-->
+<!--        android:textAllCaps="false"-->
+<!--        android:textColor="#fff"-->
+<!--        android:textSize="20sp"-->
+<!--        android:background="@drawable/custom_btn"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:layout_marginEnd="10dp"-->
+<!--        android:layout_marginTop="10dp"-->
+<!--        />-->
 
 
 
