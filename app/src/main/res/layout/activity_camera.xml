@@ -45,13 +45,11 @@
         android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/nextBtn"
         android:layout_marginBottom="10dp"
-        android:layout_marginStart="40dp"
 
         />
-<!--    android:text="Capture"-->
-<!--    android:textColor="#ffffff"-->
-<!--    android:textStyle="bold"-->
+
     <ImageButton
         android:id="@+id/nextBtn"
         android:layout_width="100dp"
@@ -59,10 +57,11 @@
         android:background="@drawable/round_btn"
         android:src="@drawable/next"
         android:scaleType="fitCenter"
+        android:visibility="gone"
         android:padding="10dp"
         app:layout_constraintTop_toTopOf="@+id/capBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="30dp"
+        app:layout_constraintStart_toEndOf="@+id/capBtn"
         />
 
     <androidx.cardview.widget.CardView
