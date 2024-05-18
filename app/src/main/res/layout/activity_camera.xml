@@ -9,6 +9,33 @@
 
 
     <ImageButton
+        android:id="@+id/backBtn"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/round_btn"
+        android:src="@drawable/back_btn"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="10dp"
+        />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Take a Selfie then click next "
+        android:gravity="center"
+        android:textSize="30sp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/backBtn"
+        />
+
+    <ImageButton
         android:id="@+id/capBtn"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -18,13 +45,11 @@
         android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/nextBtn"
         android:layout_marginBottom="10dp"
-        android:layout_marginStart="40dp"
 
         />
-<!--    android:text="Capture"-->
-<!--    android:textColor="#ffffff"-->
-<!--    android:textStyle="bold"-->
+
     <ImageButton
         android:id="@+id/nextBtn"
         android:layout_width="100dp"
@@ -32,10 +57,11 @@
         android:background="@drawable/round_btn"
         android:src="@drawable/next"
         android:scaleType="fitCenter"
+        android:visibility="gone"
         android:padding="10dp"
         app:layout_constraintTop_toTopOf="@+id/capBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="30dp"
+        app:layout_constraintStart_toEndOf="@+id/capBtn"
         />
 
     <androidx.cardview.widget.CardView
@@ -45,7 +71,7 @@
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
         app:layout_constraintBottom_toTopOf="@id/capBtn"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp">

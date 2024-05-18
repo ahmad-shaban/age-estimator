@@ -24,42 +24,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class CameraActivity extends AppCompatActivity {
 
     ImageView imageView;
-    ImageButton capBtn, nextBtn;
-
-    public static class RetrofitClient {
-        private static Retrofit retrofit = null;
-
-        public static FaceAgeEstimatorService getService() {
-            if (retrofit == null) {
-                retrofit = new Retrofit.Builder()
-                        .baseUrl("https://api-inference.huggingface.co")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
-            }
-
-            return retrofit.create(FaceAgeEstimatorService.class);
-        }
-    }
+    ImageButton backBtn, capBtn, nextBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
 
-        imageView = findViewById(R.id.imageView);
-        capBtn = findViewById(R.id.capBtn);
-        nextBtn = findViewById(R.id.nextBtn);
+        initViews();
+        askCameraPermission();
 
+        backBtn.setOnClickListener(v -> finish());
         nextBtn.setOnClickListener(v -> goToRecordActivity());
-
-        // Request for camera runtime permission
-        if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.CAMERA)
-        != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(CameraActivity.this, new String[]{
-                    Manifest.permission.CAMERA
-            }, 100);
-        }
-
         capBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,7 +52,8 @@ public class CameraActivity extends AppCompatActivity {
         if (requestCode == 100 && resultCode == RESULT_OK){
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
             imageView.setImageBitmap(bitmap);
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            nextBtn.setVisibility(View.VISIBLE);
+//            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
 
@@ -95,6 +72,21 @@ public class CameraActivity extends AppCompatActivity {
         Intent intent = new Intent(CameraActivity.this, RecordActivity.class);
         intent.putExtra("imageData", bitmapdata);
         startActivity(intent);
+    }
+
+    private void askCameraPermission(){
+        if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.CAMERA)
+        != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(CameraActivity.this, new String[]{
+                    Manifest.permission.CAMERA
+            }, 100);
+        }
+    }
+    private void initViews() {
+        imageView = findViewById(R.id.imageView);
+        capBtn = findViewById(R.id.capBtn);
+        nextBtn = findViewById(R.id.nextBtn);
+        backBtn = findViewById(R.id.backBtn);
     }
 
 }
